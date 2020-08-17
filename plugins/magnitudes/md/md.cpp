@@ -376,8 +376,8 @@ void AmplitudeProcessor_Md::initFilter(double fsamp) {
 				AmplitudeProcessor::setFilter(f);
 			break;
 			case 8:
-                // hardcoded ! We have to read the aFile.BUTTERWORTH
-				f = new Math::Filtering::IIR::ButterworthBandpass<double>(3, 1, 15, 1, true);
+				// hardcoded ! We have to read the aFile.BUTTERWORTH
+				f = new Math::Filtering::IIR::ButterworthBandpass<double>(3, 1, 15, 1);
 				AmplitudeProcessor::setFilter(f);
 			break;
 			case 9:
