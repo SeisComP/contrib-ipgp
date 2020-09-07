@@ -25,7 +25,6 @@
 #include "l4c1hz.h"
 #include <seiscomp/processing/waveformprocessor.h>
 #include <seiscomp/math/filter/stalta.h>
-#include <seiscomp/math/filter/iirfilter.h>
 #include <seiscomp/math/filter/butterworth.h>
 #include <seiscomp/logging/log.h>
 #include <seiscomp/core/strings.h>
