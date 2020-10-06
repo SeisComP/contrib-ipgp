@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <seiscomp>
-	<module name="ew2sc3" category="Processing">
+	<module name="ew2sc" category="Processing">
 		<description>
 		Earthworm hypo2000_arc messages importer
 		</description>
