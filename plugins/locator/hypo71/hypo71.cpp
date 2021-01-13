@@ -40,6 +40,8 @@
 #include <iostream>
 #include <set>
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 #include "configfile.h"
@@ -1700,8 +1702,25 @@ Origin* Hypo71::locate(PickList& pickList) {
 
 	// Execute script so the localization process gets properly run thru
 	// Hypo71 binary... This should take less than a sec...
-	if ( system(_hypo71ScriptFile.c_str()) == -1 )
-		throw LocatorException("ERROR! Failed to execute " + _hypo71ScriptFile);
+
+	// catch locator output and expose in debug output
+	char buffer[128];
+	std::string result = "";
+	string cmd = _hypo71ScriptFile.c_str();
+	FILE* pipe = popen(cmd.c_str(), "r");
+	if (!pipe) LocatorException("ERROR! Failed to execute " + _hypo71ScriptFile);
+	try {
+		while (fgets(buffer, sizeof buffer, pipe) != nullptr) {
+			result = buffer;
+			result.erase(std::remove(result.begin(), result.end(), '\n'), result.end());
+			SEISCOMP_INFO("Hypo71PC: %s",result.c_str());
+		}
+	}
+	catch (...) {
+		pclose(pipe);
+		throw;
+	}
+	pclose(pipe);
 
 	// Read back *.prt file, that's were all we need is stored
 	if ( _h71outputFile.empty() )
@@ -2947,8 +2966,27 @@ Hypo71::getZTR(const PickList& pickList) {
 		// Though we might get some trouble and weird stuffs happening if the
 		// the system terminal is quite exotic (bash, shell, bourne shell, ksh, csh, etc)
 		// Food for thought!
-		if ( system(_hypo71ScriptFile.c_str()) == -1 )
-			throw LocatorException("ERROR! Failed to execute " + _hypo71ScriptFile);
+		//if ( system(_hypo71ScriptFile.c_str()) == -1 )
+		//	throw LocatorException("ERROR! Failed to execute " + _hypo71ScriptFile);
+
+		// catch locator output and expose in debug output
+		char buffer[128];
+		std::string result = "";
+		string cmd = _hypo71ScriptFile.c_str();
+		FILE* pipe = popen(cmd.c_str(), "r");
+		if (!pipe) LocatorException("ERROR! Failed to execute " + _hypo71ScriptFile);
+		try {
+			while (fgets(buffer, sizeof buffer, pipe) != nullptr) {
+				result = buffer;
+				result.erase(std::remove(result.begin(), result.end(), '\n'), result.end());
+				SEISCOMP_INFO("Hypo71PC: %s",result.c_str());
+			}
+		}
+		catch (...) {
+			pclose(pipe);
+			throw;
+		}
+		pclose(pipe);
 
 		// READING BACK GENERATED HYPO71.PRT
 		if ( _h71outputFile.empty() ) {
@@ -2979,7 +3017,7 @@ Hypo71::getZTR(const PickList& pickList) {
 				}
 
 				if ( trimmedLine.substr(0, 42) == cutoff )
-					throw LocatorException("ERROR! Epicentral distance out of XFAR range\nSet distance cutoff ON");
+					throw LocatorException("ERROR! Epicentral distance out of XFAR range - Setting distance cutoff ON");
 
 				lineNumber++;
 			}
