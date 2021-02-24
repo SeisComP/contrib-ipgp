@@ -79,6 +79,30 @@ using namespace Seiscomp::Math;
 using namespace Seiscomp::Processing;
 
 
+namespace {
+
+
+template <typename T>
+T getParam(const Settings &settings, const char *name) {
+	T v;
+
+	if ( settings.getValue(v, (std::string("magnitudes.") + name).c_str()) )
+		return v;
+
+	if ( settings.getValue(v, name) ) {
+		SEISCOMP_WARNING("Configure magnitudes.%s in global bindings. "
+		                 "The old parameter %s has been deprecated "
+		                 "and should be replaced.", name, name);
+		return v;
+	}
+
+	throw Seiscomp::Config::OptionNotFoundException(name);
+}
+
+
+}
+
+
 /*----[ AMPLITUDE PROCESSOR CLASS ]----*/
 
 IMPLEMENT_SC_CLASS_DERIVED(AmplitudeProcessor_Md, AmplitudeProcessor, "AmplitudeProcessor_Md");
@@ -89,8 +113,8 @@ struct ampConfig {
 		double DEPTH_MAX;
 		double SIGNAL_WINDOW_END;
 		double SNR_MIN;
-        double TAPER;
-        double SIGNAL_LENGTH;
+		double TAPER;
+		double SIGNAL_LENGTH;
 		double DELTA_MAX;
 		double MD_MAX;
 		double FMA;
@@ -111,7 +135,7 @@ AmplitudeProcessor_Md::AmplitudeProcessor_Md() :
 		AmplitudeProcessor("Md") {
 
 	setSignalStart(0.);
-    setSignalEnd(aFile.SIGNAL_LENGTH);
+	setSignalEnd(aFile.SIGNAL_LENGTH);
 	setMinSNR(aFile.SNR_MIN);
 	setMaxDist(8);
 	_computeAbsMax = true;
@@ -127,7 +151,7 @@ AmplitudeProcessor_Md::AmplitudeProcessor_Md(const Core::Time& trigger) :
 		AmplitudeProcessor(trigger, "Md") {
 
 	setSignalStart(0.);
-    setSignalEnd(aFile.SIGNAL_LENGTH);
+	setSignalEnd(aFile.SIGNAL_LENGTH);
 	setMinSNR(aFile.SNR_MIN);
 	setMaxDist(8);
 	_computeAbsMax = true;
@@ -148,184 +172,185 @@ bool AmplitudeProcessor_Md::setup(const Settings& settings) {
 
 	bool isButterworth = false;
 	try {
-		aFile.SEISMO = settings.getInt("md.seismo");
+		aFile.SEISMO = getParam<int>(settings, "md.seismo");
 		std::string type;
 		switch ( aFile.SEISMO ) {
 			case 1:
 				type = "WoodAnderson";
-			break;
+				break;
 			case 2:
 				type = "Seismo5sec";
-			break;
+				break;
 			case 3:
 				type = "WWSSN LP";
-			break;
+				break;
 			case 4:
 				type = "WWSSN SP";
-			break;
+				break;
 			case 5:
 				type = "Generic Seismometer";
-			break;
+				break;
 			case 6:
 				type = "Butterworth Low Pass";
 				isButterworth = true;
-			break;
+				break;
 			case 7:
 				type = "Butterworth High Pass";
 				isButterworth = true;
-			break;
+				break;
 			case 8:
 				type = "Butterworth Band Pass";
 				isButterworth = true;
-			break;
+				break;
 			case 9:
 				type = "L4C 1Hz Seismometer";
-			break;
+				break;
 			default:
 				break;
 		}
-		SEISCOMP_DEBUG("%s sets SEISMO to  %s [%s.%s]", AMPTAG, type.c_str(),
-		    settings.networkCode.c_str(), settings.stationCode.c_str());
+		SEISCOMP_DEBUG("md: %s sets SEISMO to %s [%s.%s]", AMPTAG, type.c_str(),
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		aFile.SEISMO = _SEISMO;
-		SEISCOMP_ERROR("%s can not read SEISMO value from configuration file [%s.%s]", AMPTAG,
-		    settings.networkCode.c_str(), settings.stationCode.c_str());
+		SEISCOMP_ERROR("md: %s cannot read SEISMO value from configuration file [%s.%s]", AMPTAG,
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
 	if ( isButterworth == true ) {
 		try {
-			aFile.BUTTERWORTH = settings.getString("md.butterworth");
-			SEISCOMP_DEBUG("%s sets Butterworth filter to  %s [%s.%s]", AMPTAG,
-			    aFile.BUTTERWORTH.c_str(), settings.networkCode.c_str(),
-			    settings.stationCode.c_str());
+			aFile.BUTTERWORTH = getParam<std::string>(settings, "md.butterworth");
+			SEISCOMP_DEBUG("md: %s sets Butterworth filter to  %s [%s.%s]", AMPTAG,
+			               aFile.BUTTERWORTH.c_str(), settings.networkCode.c_str(),
+			               settings.stationCode.c_str());
 		}
 		catch ( ... ) {
 			aFile.BUTTERWORTH = _BUTTERWORTH;
-			SEISCOMP_ERROR("%s can not read Butterworth filter value from configuration file [%s.%s]", AMPTAG,
-			    settings.networkCode.c_str(), settings.stationCode.c_str());
+			SEISCOMP_ERROR("md: %s cannot read Butterworth filter value from "
+			               "configuration file [%s.%s]", AMPTAG,
+			               settings.networkCode.c_str(), settings.stationCode.c_str());
 		}
 	}
 
 	try {
-		aFile.DEPTH_MAX = settings.getDouble("md.depthmax");
-		SEISCOMP_DEBUG("%s sets DEPTH MAX to  %.2f [%s.%s]", AMPTAG, aFile.DEPTH_MAX,
-		    settings.networkCode.c_str(), settings.stationCode.c_str());
+		aFile.DEPTH_MAX = getParam<double>(settings, "md.depthmax");
+		SEISCOMP_DEBUG("md: %s sets DEPTH MAX to  %.2f [%s.%s]", AMPTAG, aFile.DEPTH_MAX,
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		aFile.DEPTH_MAX = _DEPTH_MAX;
-		SEISCOMP_ERROR("%s can not read DEPTH MAX value from configuration file [%s.%s]", AMPTAG,
-		    settings.networkCode.c_str(), settings.stationCode.c_str());
+		SEISCOMP_ERROR("md: %s cannot read DEPTH MAX value from configuration file [%s.%s]", AMPTAG,
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
 	try {
-		aFile.DELTA_MAX = settings.getDouble("md.deltamax");
-		SEISCOMP_DEBUG("%s sets DELTA MAX to  %.2f [%s.%s]", AMPTAG, aFile.DELTA_MAX,
-		    settings.networkCode.c_str(), settings.stationCode.c_str());
+		aFile.DELTA_MAX = getParam<double>(settings, "md.deltamax");
+		SEISCOMP_DEBUG("md: %s sets DELTA MAX to  %.2f [%s.%s]", AMPTAG, aFile.DELTA_MAX,
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		aFile.DELTA_MAX = _DELTA_MAX;
-		SEISCOMP_ERROR("%s can not read DELTA MAX value from configuration file [%s.%s]", AMPTAG,
-		    settings.networkCode.c_str(), settings.stationCode.c_str());
+		SEISCOMP_ERROR("md: %s cannot read DELTA MAX value from configuration file [%s.%s]", AMPTAG,
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
 	try {
-		aFile.SNR_MIN = settings.getDouble("md.snrmin");
-		SEISCOMP_DEBUG("%s sets SNR MIN to  %.2f [%s.%s]", AMPTAG, aFile.SNR_MIN,
-		    settings.networkCode.c_str(), settings.stationCode.c_str());
+		aFile.SNR_MIN = getParam<double>(settings, "md.snrmin");
+		SEISCOMP_DEBUG("md: %s sets SNR MIN to  %.2f [%s.%s]", AMPTAG, aFile.SNR_MIN,
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		aFile.SNR_MIN = _SNR_MIN;
-		SEISCOMP_ERROR("%s can not read SNR MIN value from configuration file [%s.%s]", AMPTAG,
-		    settings.networkCode.c_str(), settings.stationCode.c_str());
+		SEISCOMP_ERROR("md: %s cannot read SNR MIN value from configuration file [%s.%s]", AMPTAG,
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
-    try {
-        aFile.TAPER = settings.getDouble("md.taper");
-        SEISCOMP_DEBUG("%s sets TAPER to  %.2f [%s.%s]", AMPTAG, aFile.TAPER,
-        settings.networkCode.c_str(), settings.stationCode.c_str());
-    }
-    catch ( ... ) {
-        aFile.TAPER = _TAPER;
-        SEISCOMP_ERROR("%s can not read TAPER value from configuration file [%s.%s]", AMPTAG,
-                settings.networkCode.c_str(), settings.stationCode.c_str());
-    }
-
-    try {
-        aFile.SIGNAL_LENGTH = settings.getDouble("md.signal_length");
-        SEISCOMP_DEBUG("%s sets SIGNAL LENGTH to  %.2f [%s.%s]", AMPTAG, aFile.SIGNAL_LENGTH,
-                settings.networkCode.c_str(), settings.stationCode.c_str());
-    }
-    catch ( ... ) {
-        aFile.SIGNAL_LENGTH = _SIGNAL_LENGTH;
-        SEISCOMP_ERROR("%s can not read SIGNAL LENGTH value from configuration file [%s.%s]", AMPTAG,
-                settings.networkCode.c_str(), settings.stationCode.c_str());
-    }
+	try {
+		aFile.TAPER = getParam<double>(settings, "md.taper");
+		SEISCOMP_DEBUG("md: %s sets TAPER to  %.2f [%s.%s]", AMPTAG, aFile.TAPER,
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
+	}
+	catch ( ... ) {
+		aFile.TAPER = _TAPER;
+		SEISCOMP_ERROR("md: %s cannot read TAPER value from configuration file [%s.%s]", AMPTAG,
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
+	}
 
 	try {
-		aFile.MD_MAX = settings.getDouble("md.mdmax");
-		SEISCOMP_DEBUG("%s sets MD MAX to  %.2f [%s.%s]", AMPTAG, aFile.MD_MAX,
-		    settings.networkCode.c_str(), settings.stationCode.c_str());
+		aFile.SIGNAL_LENGTH = getParam<double>(settings, "md.signal_length");
+		SEISCOMP_DEBUG("md: %s sets SIGNAL LENGTH to  %.2f [%s.%s]", AMPTAG, aFile.SIGNAL_LENGTH,
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
+	}
+	catch ( ... ) {
+		aFile.SIGNAL_LENGTH = _SIGNAL_LENGTH;
+		SEISCOMP_ERROR("md: %s cannot read SIGNAL LENGTH value from configuration file [%s.%s]", AMPTAG,
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
+	}
+
+	try {
+		aFile.MD_MAX = getParam<double>(settings, "md.mdmax");
+		SEISCOMP_DEBUG("md: %s sets MD MAX to  %.2f [%s.%s]", AMPTAG, aFile.MD_MAX,
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		aFile.MD_MAX = _MD_MAX;
-		SEISCOMP_ERROR("%s can not read MD MAX value from configuration file [%s.%s]", AMPTAG,
-		    settings.networkCode.c_str(), settings.stationCode.c_str());
+		SEISCOMP_ERROR("md: %s cannot read MD MAX value from configuration file [%s.%s]", AMPTAG,
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
 	try {
-		aFile.FMA = settings.getDouble("md.fma");
-		SEISCOMP_DEBUG("%s sets FMA to  %.4f [%s.%s]", AMPTAG, aFile.FMA,
-		    settings.networkCode.c_str(), settings.stationCode.c_str());
+		aFile.FMA = getParam<double>(settings, "md.fma");
+		SEISCOMP_DEBUG("md: %s sets FMA to  %.4f [%s.%s]", AMPTAG, aFile.FMA,
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		aFile.FMA = _FMA;
-		SEISCOMP_ERROR("%s can not read FMA value from configuration file [%s.%s]", AMPTAG,
-		    settings.networkCode.c_str(), settings.stationCode.c_str());
+		SEISCOMP_ERROR("md: %s cannot read FMA value from configuration file [%s.%s]", AMPTAG,
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
 	try {
-		aFile.FMB = settings.getDouble("md.fmb");
-		SEISCOMP_DEBUG("%s sets FMB to  %.4f [%s.%s]", AMPTAG, aFile.FMB,
-		    settings.networkCode.c_str(), settings.stationCode.c_str());
+		aFile.FMB = getParam<double>(settings, "md.fmb");
+		SEISCOMP_DEBUG("md: %s sets FMB to  %.4f [%s.%s]", AMPTAG, aFile.FMB,
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		aFile.FMB = _FMB;
-		SEISCOMP_ERROR("%s can not read FMB value from configuration file [%s.%s]", AMPTAG,
-		    settings.networkCode.c_str(), settings.stationCode.c_str());
+		SEISCOMP_ERROR("md: %s cannot read FMB value from configuration file [%s.%s]", AMPTAG,
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
 	try {
-		aFile.FMD = settings.getDouble("md.fmd");
-		SEISCOMP_DEBUG("%s sets FMD to  %.4f [%s.%s]", AMPTAG, aFile.FMD,
-		    settings.networkCode.c_str(), settings.stationCode.c_str());
+		aFile.FMD = getParam<double>(settings, "md.fmd");
+		SEISCOMP_DEBUG("md: %s sets FMD to  %.4f [%s.%s]", AMPTAG, aFile.FMD,
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		aFile.FMD = _FMD;
-		SEISCOMP_ERROR("%s can not read FMD value from configuration file [%s.%s]", AMPTAG,
-		    settings.networkCode.c_str(), settings.stationCode.c_str());
+		SEISCOMP_ERROR("md: %s cannot read FMD value from configuration file [%s.%s]", AMPTAG,
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
 	try {
-		aFile.FMF = settings.getDouble("md.fmf");
-		SEISCOMP_DEBUG("%s sets FMF to  %.4f [%s.%s]", AMPTAG, aFile.FMF,
-		    settings.networkCode.c_str(), settings.stationCode.c_str());
+		aFile.FMF = getParam<double>(settings, "md.fmf");
+		SEISCOMP_DEBUG("md: %s sets FMF to  %.4f [%s.%s]", AMPTAG, aFile.FMF,
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		aFile.FMF = _FMF;
-		SEISCOMP_ERROR("%s can not read FMF value from configuration file [%s.%s]", AMPTAG,
-		    settings.networkCode.c_str(), settings.stationCode.c_str());
+		SEISCOMP_ERROR("md: %s cannot read FMF value from configuration file [%s.%s]", AMPTAG,
+		               settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
 	try {
-		aFile.FMZ = settings.getDouble("md.fmz");
-		SEISCOMP_DEBUG("%s sets FMZ to  %.4f [%s.%s]", AMPTAG, aFile.FMZ,
+		aFile.FMZ = getParam<double>(settings, "md.fmz");
+		SEISCOMP_DEBUG("md: %s sets FMZ to  %.4f [%s.%s]", AMPTAG, aFile.FMZ,
 		    settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		aFile.FMZ = _FMZ;
-		SEISCOMP_ERROR("%s can not read FMZ value from configuration file [%s.%s]",
-		    AMPTAG, settings.networkCode.c_str(), settings.stationCode.c_str());
+		SEISCOMP_ERROR("md: %s cannot read FMZ value from configuration file [%s.%s]",
+		               AMPTAG, settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
 	_isInitialized = true;
@@ -384,7 +409,7 @@ void AmplitudeProcessor_Md::initFilter(double fsamp) {
 				        double>(Velocity));
 			break;
 			default:
-				SEISCOMP_ERROR("%s can not initialize the chosen filter, "
+				SEISCOMP_ERROR("md: %s cannot initialize the chosen filter, "
 					"please review your configuration file", AMPTAG);
 			break;
 		}
@@ -492,12 +517,12 @@ bool AmplitudeProcessor_Md::deconvolveData(Response* resp,
 			cascade = *tf / seis5sec;
 		break;
 		case 9:
-			SEISCOMP_INFO("%s Applying filter L4C 1Hz to data", AMPTAG);
+			SEISCOMP_INFO("md: %s Applying filter L4C 1Hz to data", AMPTAG);
 			cascade = *tf / l4c1hz;
 		break;
 		default:
 			cascade = tf;
-			SEISCOMP_INFO("%s No seismometer specified, no signal reconvolution performed", AMPTAG);
+			SEISCOMP_INFO("md: %s No seismometer specified, no signal reconvolution performed", AMPTAG);
 			return false;
 		break;
 	}
@@ -507,7 +532,7 @@ bool AmplitudeProcessor_Md::deconvolveData(Response* resp,
 	Math::Statistics::detrend(data.size(), data.typedData(), m, n);
 
     _config.respTaper = aFile.TAPER;
-    SEISCOMP_DEBUG("%s TAPER is set to %.2f", AMPTAG, aFile.TAPER);
+    SEISCOMP_DEBUG("md: %s TAPER is set to %.2f", AMPTAG, aFile.TAPER);
 
 	return Math::Restitution::transformFFT(data.size(), data.typedData(),
 	    _stream.fsamp, cascade.get(), _config.respTaper, _config.respMinFreq,
@@ -528,8 +553,8 @@ bool AmplitudeProcessor_Md::computeAmplitude(const DoubleArray& data, size_t i1,
 	double amax, Imax, ofs_sig, amp_sig;
 	DoubleArrayPtr d;
 
-    if ( *snr < aFile.SNR_MIN )
-        SEISCOMP_DEBUG("%s computed SNR is under configured SNR MIN", AMPTAG);
+	if ( *snr < aFile.SNR_MIN )
+		SEISCOMP_DEBUG("md: %s computed SNR is under configured SNR MIN", AMPTAG);
 
 	if ( _computeAbsMax ) {
 		size_t imax = find_absmax(data.size(), data.typedData(), si1, si2, offset);
@@ -547,7 +572,7 @@ bool AmplitudeProcessor_Md::computeAmplitude(const DoubleArray& data, size_t i1,
 
 	Imax = dt->index;
 
-	SEISCOMP_DEBUG("%s Amplitude max: %.2f", AMPTAG, amax);
+	SEISCOMP_DEBUG("md: %s Amplitude max: %.2f", AMPTAG, amax);
 
 	//! searching for Coda second by second through the end of the window
 	//! if snrMin config is not 0 (config file or waveform review window)
@@ -558,7 +583,7 @@ bool AmplitudeProcessor_Md::computeAmplitude(const DoubleArray& data, size_t i1,
 		bool hasEndSignal = false;
 		double calculatedSnr = -1;
 
-		for (i = (int) Imax; i < i2; i = i + 1 * (int) _stream.fsamp) {
+		for ( i = (int) Imax; i < i2; i = i + 1 * (int) _stream.fsamp ) {
 
 			int window_end = i + 1 * (int) _stream.fsamp;
 			d = static_cast<DoubleArray*>(data.slice(i, window_end));
@@ -570,7 +595,7 @@ bool AmplitudeProcessor_Md::computeAmplitude(const DoubleArray& data, size_t i1,
 			amp_sig = 2 * d->rms(ofs_sig);
 
 			if ( amp_sig / *_noiseAmplitude <= _config.snrMin ) {
-				SEISCOMP_DEBUG("%s End of signal found! (%.2f <= %.2f)", AMPTAG,
+				SEISCOMP_DEBUG("md: %s End of signal found! (%.2f <= %.2f)", AMPTAG,
 				    (amp_sig / *_noiseAmplitude), _config.snrMin);
 				hasEndSignal = true;
 				calculatedSnr = amp_sig / *_noiseAmplitude;
@@ -579,7 +604,7 @@ bool AmplitudeProcessor_Md::computeAmplitude(const DoubleArray& data, size_t i1,
 		}
 
 		if ( !hasEndSignal ) {
-			SEISCOMP_ERROR("%s SNR stayed over configured SNR_MIN! (%.2f > %.2f), "
+			SEISCOMP_ERROR("md: %s SNR stayed over configured SNR_MIN! (%.2f > %.2f), "
 				"skipping magnitude calculation for this station", AMPTAG,
 			    calculatedSnr, _config.snrMin);
 			return false;
@@ -587,7 +612,9 @@ bool AmplitudeProcessor_Md::computeAmplitude(const DoubleArray& data, size_t i1,
 
 		dt->index = i;
 	}
-	else dt->index = Imax;
+	else {
+		dt->index = Imax;
+	}
 
 	//amplitude->value = 2 * amp_sig; //! actually it would have to be max. peak-to-peak
 	amplitude->value = amp_sig;
@@ -604,8 +631,8 @@ bool AmplitudeProcessor_Md::computeAmplitude(const DoubleArray& data, size_t i1,
 
 	*period = dt->index - i1 + (_config.signalBegin * _stream.fsamp);
 
-	SEISCOMP_DEBUG("%s calculated event amplitude = %.2f", AMPTAG, amplitude->value);
-	SEISCOMP_DEBUG("%s calculated signal end at %.2f ms from P phase", AMPTAG, *period);
+	SEISCOMP_DEBUG("md: %s calculated event amplitude = %.2f", AMPTAG, amplitude->value);
+	SEISCOMP_DEBUG("md: %s calculated signal end at %.2f ms from P phase", AMPTAG, *period);
 
 	return true;
 }
@@ -641,7 +668,7 @@ double AmplitudeProcessor_Md::timeWindowLength(double distance_deg) const {
 	        - aFile.STACOR - (aFile.FMD * distance_km)) / (aFile.FMB + aFile.FMF);
 
 	windowLength = pow(10, windowLength) + aFile.SIGNAL_WINDOW_END;
-	SEISCOMP_DEBUG("%s Requesting stream of %.2fsec for current station", AMPTAG, windowLength);
+	SEISCOMP_DEBUG("md: %s Requesting stream of %.2fsec for current station", AMPTAG, windowLength);
 
 	return windowLength;
 }
@@ -694,154 +721,154 @@ MagnitudeProcessor_Md::MagnitudeProcessor_Md() :
 bool MagnitudeProcessor_Md::setup(const Settings& settings) {
 
 	try {
-		mFile.DELTA_MAX = settings.getDouble("md.deltamax");
-		SEISCOMP_DEBUG("%s sets DELTA MAX to  %.2f [%s.%s]", MAGTAG, mFile.DELTA_MAX,
+		mFile.DELTA_MAX = getParam<double>(settings, "md.deltamax");
+		SEISCOMP_DEBUG("md: %s sets DELTA MAX to  %.2f [%s.%s]", MAGTAG, mFile.DELTA_MAX,
 		    settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		mFile.DELTA_MAX = _DELTA_MAX;
-		SEISCOMP_ERROR("%s can not read DELTA MAX value from configuration file [%s.%s]",
+		SEISCOMP_ERROR("md: %s cannot read DELTA MAX value from configuration file [%s.%s]",
 		    MAGTAG, settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
 	try {
-		mFile.DEPTH_MAX = settings.getDouble("md.depthmax");
-		SEISCOMP_DEBUG("%s sets DEPTH MAX to  %.2f [%s.%s]", MAGTAG, mFile.DEPTH_MAX,
+		mFile.DEPTH_MAX = getParam<double>(settings, "md.depthmax");
+		SEISCOMP_DEBUG("md: %s sets DEPTH MAX to  %.2f [%s.%s]", MAGTAG, mFile.DEPTH_MAX,
 		    settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		mFile.DEPTH_MAX = _DEPTH_MAX;
-		SEISCOMP_ERROR("%s can not read DEPTH MAX value from configuration file [%s.%s]",
+		SEISCOMP_ERROR("md: %s cannot read DEPTH MAX value from configuration file [%s.%s]",
 		    MAGTAG, settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
 	try {
-		mFile.MD_MAX = settings.getDouble("md.mdmax");
-		SEISCOMP_DEBUG("%s sets MD MAX to  %.2f [%s.%s]", MAGTAG, mFile.MD_MAX,
+		mFile.MD_MAX = getParam<double>(settings, "md.mdmax");
+		SEISCOMP_DEBUG("md: %s sets MD MAX to  %.2f [%s.%s]", MAGTAG, mFile.MD_MAX,
 		    settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		mFile.MD_MAX = _MD_MAX;
-		SEISCOMP_ERROR("%s can not read MD MAX value from configuration file [%s.%s]",
+		SEISCOMP_ERROR("md: %s cannot read MD MAX value from configuration file [%s.%s]",
 		    MAGTAG, settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
 	try {
-		mFile.LINEAR_CORRECTION = settings.getDouble("md.linearcorrection");
-		SEISCOMP_DEBUG("%s sets LINEAR CORRECTION to  %.2f [%s.%s]", MAGTAG,
+		mFile.LINEAR_CORRECTION = getParam<double>(settings, "md.linearcorrection");
+		SEISCOMP_DEBUG("md: %s sets LINEAR CORRECTION to  %.2f [%s.%s]", MAGTAG,
 		    mFile.LINEAR_CORRECTION, settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		mFile.LINEAR_CORRECTION = _LINEAR_CORRECTION;
-		SEISCOMP_ERROR("%s can not read LINEAR CORRECTION value from configuration file [%s.%s]",
+		SEISCOMP_ERROR("md: %s cannot read LINEAR CORRECTION value from configuration file [%s.%s]",
 		    MAGTAG, settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
 	try {
-		mFile.OFFSET = settings.getDouble("md.offset");
-		SEISCOMP_DEBUG("%s sets OFFSET to  %.2f [%s.%s]", MAGTAG, mFile.OFFSET,
+		mFile.OFFSET = getParam<double>(settings, "md.offset");
+		SEISCOMP_DEBUG("md: %s sets OFFSET to  %.2f [%s.%s]", MAGTAG, mFile.OFFSET,
 		    settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		mFile.OFFSET = _OFFSET;
-		SEISCOMP_ERROR("%s can not read OFFSET value from configuration file [%s.%s]",
+		SEISCOMP_ERROR("md: %s cannot read OFFSET value from configuration file [%s.%s]",
 		    MAGTAG, settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
 	try {
-		mFile.FMA = settings.getDouble("md.fma");
-		SEISCOMP_DEBUG("%s sets FMA to  %.4f [%s.%s]", MAGTAG, mFile.FMA,
+		mFile.FMA = getParam<double>(settings, "md.fma");
+		SEISCOMP_DEBUG("md: %s sets FMA to  %.4f [%s.%s]", MAGTAG, mFile.FMA,
 		    settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		mFile.FMA = _FMA;
-		SEISCOMP_ERROR("%s can not read FMA value from configuration file [%s.%s]",
+		SEISCOMP_ERROR("md: %s cannot read FMA value from configuration file [%s.%s]",
 		    MAGTAG, settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
 	try {
-		mFile.FMB = settings.getDouble("md.fmb");
-		SEISCOMP_DEBUG("%s sets FMB to  %.4f [%s.%s]", MAGTAG, mFile.FMB,
+		mFile.FMB = settings.getDouble("magnitudes.md.fmb");
+		SEISCOMP_DEBUG("md: %s sets FMB to  %.4f [%s.%s]", MAGTAG, mFile.FMB,
 		    settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		mFile.FMB = _FMB;
-		SEISCOMP_ERROR("%s can not read FMB value from configuration file [%s.%s]",
+		SEISCOMP_ERROR("md: %s cannot read FMB value from configuration file [%s.%s]",
 		    MAGTAG, settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
 	try {
-		mFile.FMD = settings.getDouble("md.fmd");
-		SEISCOMP_DEBUG("%s sets FMD to  %.4f [%s.%s]", MAGTAG, mFile.FMD,
+		mFile.FMD = settings.getDouble("magnitudes.md.fmd");
+		SEISCOMP_DEBUG("md: %s sets FMD to  %.4f [%s.%s]", MAGTAG, mFile.FMD,
 		    settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		mFile.FMD = _FMD;
-		SEISCOMP_ERROR("%s can not read FMD value from configuration file [%s.%s]",
+		SEISCOMP_ERROR("md: %s cannot read FMD value from configuration file [%s.%s]",
 		    MAGTAG, settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
 	try {
-		mFile.FMF = settings.getDouble("md.fmf");
-		SEISCOMP_DEBUG("%s sets FMF to  %.4f [%s.%s]", MAGTAG, mFile.FMF,
+		mFile.FMF = settings.getDouble("magnitudes.md.fmf");
+		SEISCOMP_DEBUG("md: %s sets FMF to  %.4f [%s.%s]", MAGTAG, mFile.FMF,
 		    settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		mFile.FMF = _FMF;
-		SEISCOMP_ERROR("%s can not read FMF value from configuration file [%s.%s]",
+		SEISCOMP_ERROR("md: %s cannot read FMF value from configuration file [%s.%s]",
 		    MAGTAG, settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
 	try {
-		mFile.SNR_MIN = settings.getDouble("md.snrmin");
-		SEISCOMP_DEBUG("%s sets SNR MIN to  %.4f [%s.%s]", MAGTAG, mFile.SNR_MIN,
+		mFile.SNR_MIN = getParam<double>(settings, "md.snrmin");
+		SEISCOMP_DEBUG("md: %s sets SNR MIN to  %.4f [%s.%s]", MAGTAG, mFile.SNR_MIN,
 				settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		mFile.SNR_MIN = _SNR_MIN;
-		SEISCOMP_ERROR("%s can not read SNR MIN value from configuration file [%s.%s]",
+		SEISCOMP_ERROR("md: %s cannot read SNR MIN value from configuration file [%s.%s]",
 				MAGTAG, settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	try {
-		mFile.TAPER = settings.getDouble("md.taper");
-		SEISCOMP_DEBUG("%s sets TAPER to  %.4f [%s.%s]", MAGTAG, mFile.TAPER,
+		mFile.TAPER = getParam<double>(settings, "md.taper");
+		SEISCOMP_DEBUG("md: %s sets TAPER to  %.4f [%s.%s]", MAGTAG, mFile.TAPER,
 				settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		mFile.TAPER = _TAPER;
-		SEISCOMP_ERROR("%s can not read TAPER value from configuration file [%s.%s]",
+		SEISCOMP_ERROR("md: %s cannot read TAPER value from configuration file [%s.%s]",
 				MAGTAG, settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	try {
-		mFile.SIGNAL_LENGTH = settings.getDouble("md.signal_length");
-		SEISCOMP_DEBUG("%s sets SIGNAL LENGTH to  %.4f [%s.%s]", MAGTAG, mFile.SIGNAL_LENGTH,
+		mFile.SIGNAL_LENGTH = getParam<double>(settings, "md.signal_length");
+		SEISCOMP_DEBUG("md: %s sets SIGNAL LENGTH to  %.4f [%s.%s]", MAGTAG, mFile.SIGNAL_LENGTH,
 				settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		mFile.SIGNAL_LENGTH = _SIGNAL_LENGTH;
-		SEISCOMP_ERROR("%s can not read SIGNAL LENGTH value from configuration file [%s.%s]",
+		SEISCOMP_ERROR("md: %s cannot read SIGNAL LENGTH value from configuration file [%s.%s]",
 				MAGTAG, settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
 	try {
-		mFile.FMZ = settings.getDouble("md.fmz");
-		SEISCOMP_DEBUG("%s sets FMZ to  %.4f [%s.%s]", MAGTAG, mFile.FMZ,
+		mFile.FMZ = getParam<double>(settings, "md.fmz");
+		SEISCOMP_DEBUG("md: %s sets FMZ to  %.4f [%s.%s]", MAGTAG, mFile.FMZ,
 		    settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		mFile.FMZ = _FMZ;
-		SEISCOMP_ERROR("%s can not read FMZ value from configuration file [%s.%s]",
+		SEISCOMP_ERROR("md: %s cannot read FMZ value from configuration file [%s.%s]",
 		    MAGTAG, settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
 	try {
-		mFile.STACOR = settings.getDouble("md.stacor");
-		SEISCOMP_DEBUG("%s sets STACOR to  %.4f [%s.%s]", MAGTAG, mFile.STACOR,
+		mFile.STACOR = getParam<double>(settings, "md.stacor");
+		SEISCOMP_DEBUG("md: %s sets STACOR to  %.4f [%s.%s]", MAGTAG, mFile.STACOR,
 		    settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 	catch ( ... ) {
 		mFile.STACOR = _STACOR;
-		SEISCOMP_ERROR("%s can not read STACOR value from configuration file [%s.%s]",
+		SEISCOMP_ERROR("md: %s cannot read STACOR value from configuration file [%s.%s]",
 		    MAGTAG, settings.networkCode.c_str(), settings.stationCode.c_str());
 	}
 
@@ -854,46 +881,46 @@ bool MagnitudeProcessor_Md::setup(const Settings& settings) {
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 MagnitudeProcessor::Status
-MagnitudeProcessor_Md::computeMagnitude(double amplitude, const std::string &unit,
+MagnitudeProcessor_Md::computeMagnitude(double amplitude, const std::string &,
                                         double period, double, double delta, double depth,
-                                        const DataModel::Origin *hypocenter,
-                                        const DataModel::SensorLocation *receiver,
+                                        const DataModel::Origin *,
+                                        const DataModel::SensorLocation *,
                                         const DataModel::Amplitude *,
                                         double& value) {
 
 	double epdistkm;
 	epdistkm = Math::Geo::deg2km(delta);
 
-	SEISCOMP_DEBUG("%s --------------------------------", MAGTAG);
-	SEISCOMP_DEBUG("%s |    PARAMETERS   |    VALUE   |", MAGTAG);
-	SEISCOMP_DEBUG("%s --------------------------------", MAGTAG);
-	SEISCOMP_DEBUG("%s | window length   | %.2f ", MAGTAG, mFile.SIGNAL_LENGTH);
-	SEISCOMP_DEBUG("%s | taper           | %.2f ", MAGTAG, mFile.TAPER);
-	SEISCOMP_DEBUG("%s | min snr         | %.2f ", MAGTAG, mFile.SNR_MIN);
-	SEISCOMP_DEBUG("%s | delta max       | %.2f ", MAGTAG, mFile.DELTA_MAX);
-	SEISCOMP_DEBUG("%s | depth max       | %.2f ", MAGTAG, mFile.DEPTH_MAX);
-	SEISCOMP_DEBUG("%s | md max          | %.2f ", MAGTAG, mFile.MD_MAX);
-	SEISCOMP_DEBUG("%s | fma             | %.4f ", MAGTAG, mFile.FMA);
-	SEISCOMP_DEBUG("%s | fmb             | %.4f ", MAGTAG, mFile.FMB);
-	SEISCOMP_DEBUG("%s | fmd             | %.4f ", MAGTAG, mFile.FMD);
-	SEISCOMP_DEBUG("%s | fmf             | %.4f ", MAGTAG, mFile.FMF);
-	SEISCOMP_DEBUG("%s | fmz             | %.4f ", MAGTAG, mFile.FMZ);
-	SEISCOMP_DEBUG("%s | stacor          | %.4f ", MAGTAG, mFile.STACOR);
-	SEISCOMP_DEBUG("%s --------------------------------", MAGTAG);
-	SEISCOMP_DEBUG("%s | (f-p)           | %.2f sec ", MAGTAG, period);
-	SEISCOMP_DEBUG("%s | seismic depth   | %.2f km ", MAGTAG, depth);
-	SEISCOMP_DEBUG("%s | epicenter dist  | %.2f km ", MAGTAG, epdistkm);
-	SEISCOMP_DEBUG("%s --------------------------------", MAGTAG);
+	SEISCOMP_DEBUG("md: %s --------------------------------", MAGTAG);
+	SEISCOMP_DEBUG("md: %s |    PARAMETERS   |    VALUE   |", MAGTAG);
+	SEISCOMP_DEBUG("md: %s --------------------------------", MAGTAG);
+	SEISCOMP_DEBUG("md: %s | window length   | %.2f ", MAGTAG, mFile.SIGNAL_LENGTH);
+	SEISCOMP_DEBUG("md: %s | taper           | %.2f ", MAGTAG, mFile.TAPER);
+	SEISCOMP_DEBUG("md: %s | min snr         | %.2f ", MAGTAG, mFile.SNR_MIN);
+	SEISCOMP_DEBUG("md: %s | delta max       | %.2f ", MAGTAG, mFile.DELTA_MAX);
+	SEISCOMP_DEBUG("md: %s | depth max       | %.2f ", MAGTAG, mFile.DEPTH_MAX);
+	SEISCOMP_DEBUG("md: %s | md max          | %.2f ", MAGTAG, mFile.MD_MAX);
+	SEISCOMP_DEBUG("md: %s | fma             | %.4f ", MAGTAG, mFile.FMA);
+	SEISCOMP_DEBUG("md: %s | fmb             | %.4f ", MAGTAG, mFile.FMB);
+	SEISCOMP_DEBUG("md: %s | fmd             | %.4f ", MAGTAG, mFile.FMD);
+	SEISCOMP_DEBUG("md: %s | fmf             | %.4f ", MAGTAG, mFile.FMF);
+	SEISCOMP_DEBUG("md: %s | fmz             | %.4f ", MAGTAG, mFile.FMZ);
+	SEISCOMP_DEBUG("md: %s | stacor          | %.4f ", MAGTAG, mFile.STACOR);
+	SEISCOMP_DEBUG("md: %s --------------------------------", MAGTAG);
+	SEISCOMP_DEBUG("md: %s | (f-p)           | %.2f sec ", MAGTAG, period);
+	SEISCOMP_DEBUG("md: %s | seismic depth   | %.2f km ", MAGTAG, depth);
+	SEISCOMP_DEBUG("md: %s | epicenter dist  | %.2f km ", MAGTAG, epdistkm);
+	SEISCOMP_DEBUG("md: %s --------------------------------", MAGTAG);
 
 	if ( amplitude <= 0. ) {
 		value = 0;
-		SEISCOMP_ERROR("%s calculated amplitude is wrong, "
+		SEISCOMP_ERROR("md: %s calculated amplitude is wrong, "
 		               "no magnitude will be calculated", MAGTAG);
 		return Error;
 	}
 
 	if ( (mFile.DELTA_MAX) < epdistkm ) {
-		SEISCOMP_ERROR("%s epicenter distance is out of configured range, "
+		SEISCOMP_ERROR("md: %s epicenter distance is out of configured range, "
 		               "no magnitude will be calculated", MAGTAG);
 		return DistanceOutOfRange;
 	}
@@ -902,7 +929,7 @@ MagnitudeProcessor_Md::computeMagnitude(double amplitude, const std::string &uni
 	        + (mFile.FMD * epdistkm) + (mFile.FMZ * depth) + mFile.STACOR;
 
 	if ( value > mFile.MD_MAX )
-		SEISCOMP_WARNING("%s Calculated magnitude is beyond max Md value [value= %.2f]",
+		SEISCOMP_WARNING("md: %s Calculated magnitude is beyond max Md value [value= %.2f]",
 		                 MAGTAG, value);
 
 	return OK;
