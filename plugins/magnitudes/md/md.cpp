@@ -886,6 +886,7 @@ MagnitudeProcessor_Md::computeMagnitude(double amplitude, const std::string &,
                                         const DataModel::Origin *,
                                         const DataModel::SensorLocation *,
                                         const DataModel::Amplitude *,
+                                        const Locale *,
                                         double& value) {
 
 	double epdistkm;
