@@ -779,11 +779,6 @@ int EW2SC::extractOrigin(char* msg) {
 	string eventErz;
 	string eventMinDistance;
 	string zero = "0";
-	string neventMonth;
-	string neventDay;
-	string neventHour;
-	string neventMin;
-	string neventSec;
 	string tmpFile = _configPath + "arc.tmp";
 
 	// Write temporary archive file
@@ -837,17 +832,17 @@ int EW2SC::extractOrigin(char* msg) {
 			eventHour = line.substr(8, 2);
 			eventMin = line.substr(10, 2);
 			eventSec = line.substr(12, 2) + "." + line.substr(14, 2);
-			eventSec = blank_replace(eventSec, zero);
 			if ( line.substr(36, 3) == "   " )
 				eventAmplitudeMagnitude = "NaN";
 			else
 				eventAmplitudeMagnitude = line.substr(36, 1) + "." + line.substr(37, 2);
 			eventAmplitudeMagnitude = blank_replace(eventAmplitudeMagnitude, zero);
-			neventMonth = blank_replace(eventMonth, zero);
-			neventDay = blank_replace(eventDay, zero);
-			neventHour = blank_replace(eventHour, zero);
-			neventMin = blank_replace(eventMin, zero);
-			neventSec = blank_replace(eventSec, zero);
+			eventYear = blank_replace(eventYear, zero);
+			eventMonth = blank_replace(eventMonth, zero);
+			eventDay = blank_replace(eventDay, zero);
+			eventHour = blank_replace(eventHour, zero);
+			eventMin = blank_replace(eventMin, zero);
+			eventSec = blank_replace(eventSec, zero);
 			eventDepth = line.substr(31, 3) + "." + line.substr(34, 2);
 			eventPhases = line.substr(39, 3);
 			eventAzimuth = line.substr(42, 3);
