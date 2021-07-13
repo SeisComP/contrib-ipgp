@@ -848,6 +848,7 @@ int EW2SC::extractOrigin(char* msg) {
 			eventAzimuth = line.substr(42, 3);
 			eventMinDistance = line.substr(45, 3);
 			eventRms = line.substr(48, 2) + "." + line.substr(50, 2);
+			eventRms = blank_replace(eventRms, zero);
 			eventLatDeg = line.substr(16, 2);
 			if ( line.substr(18, 1) == "S" )
 				eventLatSit = "S";
@@ -861,7 +862,9 @@ int EW2SC::extractOrigin(char* msg) {
 				eventLonSit = "W";
 			eventLonMin = line.substr(27, 4);
 			eventErh = line.substr(85, 2) + "." + line.substr(87, 2);
+			eventErh = blank_replace(eventErh, zero);
 			eventErz = line.substr(89, 2) + "." + line.substr(91, 2);
+			eventErz = blank_replace(eventErz, zero);
 			if ( line.substr(70, 3) == "   " )
 				eventCodaDurationMagnitude = "NaN";
 			else
