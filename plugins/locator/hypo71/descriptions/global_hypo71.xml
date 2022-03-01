@@ -3,7 +3,7 @@
 	<plugin name="Hypo71">
 		<extends>global</extends>
 		<description>
-		This plugin allows the use of the traditional Hypo71PC locator with SeisComP.
+		The traditional Hypo71PC locator with SeisComP.
 		</description>
 		<configuration>
 			<group name="hypo71">

@@ -1,13 +1,14 @@
-The Hypo71 locator algorithm by Fred Klein locator [#hypo71]_ has
+The Hypo71 locator algorithm by Fred Klein locator (:cite:t:`lee-1975`) has
 been implemented into |scname| through the plugin mechanism. The plugin *hypo71*
 contains the LocatorInterface implementation for Hypo71.
 This plugin uses a slightly modified Hypo71 version from Alexandre Nercessian (IPGP)
 which allows negative earthquake depth (above sea level) and negative stations
 altitude (below sea level - OBS).
 
-The development of this plugin was co-financed by the European Union and le Ministère
-de l'Ecologie, du Développement Durable, des Transports et du Logement [#lemin]_,
-developed by OVSM (IPGP) [#ovsm]_.
+The development of this plugin was co-financed by the European Union and
+`le Ministère de l'Ecologie, du Développement Durable, des Transports et du Logement
+<http://www.developpement-durable.gouv.fr>`_
+and developed by :cite:t:`ovsm` / :cite:t:`ipgp`.
 
 
 How it works
@@ -314,19 +315,5 @@ Then the Hypo71 selected profile parameters show up.
 More
 ====
 
-* Take a look at Fred Klein HYPOINVERSE Earthquake Location software [#hypoinverse]_,
-* Hypo71PC original manual and binary are available on USGS website [#hypo71]_.
-
-
-.. _sec-hypo71_references:
-
-References
-==========
-
-
-.. target-notes::
-
-.. [#hypo71] USGS: Hypo71PC original manual and binary, https://pubs.er.usgs.gov/publication/ofr75311
-.. [#lemin] Le Ministère de l'Ecologie, du Développement Durable, des Transports et du Logement: http://www.developpement-durable.gouv.fr/
-.. [#ovsm] OVSM (IPGP): http://www.ipgp.fr, https://www.interreg-caraibes.com
-.. [#hypoinverse] Fred Klein: HYPOINVERSE Earthquake Location, https://www.usgs.gov/software/hypoinverse-earthquake-location
+* Take a look at Fred Klein HYPOINVERSE Earthquake Location software (:cite:t:`klein-2002`),
+* Hypo71PC original manual and binary are available on USGS website (:cite:t:`lee-1975`).
