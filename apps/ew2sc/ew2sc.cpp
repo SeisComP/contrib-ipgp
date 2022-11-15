@@ -33,7 +33,7 @@
 
 
 #include <boost/thread.hpp>
-#include <boost/bind.hpp>
+#include <functional>
 #include <iostream>
 #include <errno.h>
 
@@ -373,7 +373,7 @@ void EW2SC::runHeartbeatThread() {
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 void EW2SC::startListenerThread() {
-	_listenerThread = new boost::thread(boost::bind(&EW2SC::runListenerThread, this));
+	_listenerThread = new boost::thread(bind(&EW2SC::runListenerThread, this));
 }
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -382,7 +382,7 @@ void EW2SC::startListenerThread() {
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 void EW2SC::startHeartbeatThread() {
-	_heartbeatThread = new boost::thread(boost::bind(&EW2SC::runHeartbeatThread, this));
+	_heartbeatThread = new boost::thread(bind(&EW2SC::runHeartbeatThread, this));
 }
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
