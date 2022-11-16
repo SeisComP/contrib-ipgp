@@ -31,8 +31,6 @@
 #include <seiscomp/math/geo.h>
 #include <seiscomp/utils/files.h>
 
-
-#include <boost/thread.hpp>
 #include <functional>
 #include <iostream>
 #include <errno.h>
@@ -56,7 +54,6 @@ using namespace Seiscomp::DataModel;
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 EW2SC::EW2SC(int argc, char** argv) : Application(argc, argv) {
-
 	setLoadInventoryEnabled(false);
 	setLoadStationsEnabled(true);
 	setAutoApplyNotifierEnabled(true);
@@ -373,7 +370,7 @@ void EW2SC::runHeartbeatThread() {
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 void EW2SC::startListenerThread() {
-	_listenerThread = new boost::thread(bind(&EW2SC::runListenerThread, this));
+	_listenerThread = new thread(bind(&EW2SC::runListenerThread, this));
 }
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -382,7 +379,7 @@ void EW2SC::startListenerThread() {
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 void EW2SC::startHeartbeatThread() {
-	_heartbeatThread = new boost::thread(bind(&EW2SC::runHeartbeatThread, this));
+	_heartbeatThread = new thread(bind(&EW2SC::runHeartbeatThread, this));
 }
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 

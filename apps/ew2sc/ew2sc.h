@@ -19,8 +19,8 @@
  ************************************************************************/
 
 
-#ifndef __IPGP_EARTHWORMTOSEISCOMP3_H__
-#define __IPGP_EARTHWORMTOSEISCOMP3_H__
+#ifndef IPGP_EARTHWORMTOSEISCOMP3_H
+#define IPGP_EARTHWORMTOSEISCOMP3_H
 
 
 #include <string>
@@ -39,6 +39,8 @@
 #include <seiscomp/datamodel/utils.h>
 #include <seiscomp/datamodel/publicobjectcache.h>
 #include <seiscomp/seismology/locatorinterface.h>
+
+#include <thread>
 
 
 namespace Seiscomp {
@@ -196,7 +198,7 @@ class EW2SC : public Seiscomp::Client::Application {
 		//  Private members
 		// ------------------------------------------------------------------
 		struct sockaddr_in serv_addr;
-		struct hostent* server;
+		struct hostent *server;
 
 		int socketDescriptor;
 		int senderPort;
@@ -233,17 +235,17 @@ class EW2SC : public Seiscomp::Client::Application {
 		double _uncertaintyMax;
 		std::vector<double> _uncertainties;
 
-		Seiscomp::Logging::Channel* _infoChannel;
-		Seiscomp::Logging::Output* _infoOutput;
-		Seiscomp::Logging::Channel* _errorChannel;
-		Seiscomp::Logging::Output* _errorOutput;
+		Seiscomp::Logging::Channel *_infoChannel;
+		Seiscomp::Logging::Output  *_infoOutput;
+		Seiscomp::Logging::Channel *_errorChannel;
+		Seiscomp::Logging::Output  *_errorOutput;
 
 	protected:
 		// ------------------------------------------------------------------
 		//  Protected members
 		// ------------------------------------------------------------------
-		boost::thread* _listenerThread;
-		boost::thread* _heartbeatThread;
+		std::thread *_listenerThread;
+		std::thread *_heartbeatThread;
 };
 
 #endif
