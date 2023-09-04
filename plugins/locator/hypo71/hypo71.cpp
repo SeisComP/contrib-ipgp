@@ -26,6 +26,7 @@
 
 #include <seiscomp/core/system.h>
 #include <seiscomp/logging/log.h>
+#include <seiscomp/logging/filerotator.h>
 #include <seiscomp/core/strings.h>
 #include <seiscomp/system/environment.h>
 #include <seiscomp/datamodel/utils.h>
@@ -97,6 +98,7 @@ Hypo71::Hypo71() {
 	_name = "Hypo71";
 	_publicIDPattern = "Hypo71.@time/%Y%m%d%H%M%S.%f@.@id@";
 	_allowMissingStations = false;
+	_logChannel = SEISCOMP_DEF_LOGCHANNEL("log", Logging::LL_INFO);
 
 	if ( _allowedParameters.empty() ) {
 		_allowedParameters.push_back("TEST(01)");
@@ -133,7 +135,15 @@ Hypo71::Hypo71() {
 
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-Hypo71::~Hypo71() {}
+Hypo71::~Hypo71() {
+	if ( _logOutput ) {
+		delete _logOutput;
+	}
+
+	if ( _logChannel ) {
+		delete _logChannel;
+	}
+}
 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
@@ -163,15 +173,32 @@ bool Hypo71::init(const Config::Config& config) {
 	}
 
 	Seiscomp::Environment *env = Seiscomp::Environment::Instance();
+	string logFileName;
 
 	try {
-		_logFile = env->absolutePath(config.getString("hypo71.logFile"));
-		SEISCOMP_DEBUG("%s | logFile              | %s", MSG_HEADER, _logFile.c_str());
+		logFileName = env->absolutePath(config.getString("hypo71.logFile"));
+		SEISCOMP_DEBUG("%s | logFile              | %s", MSG_HEADER, logFileName.c_str());
 	}
 	catch ( ... ) {
-		_logFile = env->absolutePath("@DATADIR@/hypo71/HYPO71.LOG");
+		logFileName = env->absolutePath("@LOGDIR@/HYPO71.LOG");
 		SEISCOMP_DEBUG("%s |   logFile            | DEFAULT value: %s",
-		    MSG_HEADER, _logFile.c_str());
+		    MSG_HEADER, logFileName.c_str());
+	}
+
+	if ( _logOutput ) {
+		delete _logOutput;
+	}
+
+	auto logFile = new Logging::FileRotatorOutput();
+	if ( !logFile->open(logFileName.c_str()) ) {
+		SEISCOMP_WARNING("Failed to open log file at %s", logFileName.c_str());
+		delete logFile;
+		logFile = nullptr;
+	}
+
+	_logOutput = logFile;
+	if ( _logOutput ) {
+		_logOutput->subscribe(_logChannel);
 	}
 
 	try {
@@ -821,17 +848,6 @@ const int Hypo71::getH71Weight(const PickList& pickList,
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 Origin* Hypo71::locate(PickList& pickList) {
-
-	ofstream log(_logFile.c_str(), ios::app);
-
-	/* time log's buffer */
-	time_t rawtime;
-	struct tm* timeinfo;
-	char head[80];
-	time(&rawtime);
-	timeinfo = localtime(&rawtime);
-	strftime(head, 80, "%F %H:%M:%S [log] ", timeinfo);
-
 	//! Reset trial hypocenter position
 	_trialLatDeg = "";
 	_trialLatMin = "";
@@ -2005,20 +2021,23 @@ Origin* Hypo71::locate(PickList& pickList) {
 			}
 
 			//log << head << "*---------------------------------------*" <<endl;
-			log << head << "|           FINAL RUN RESULTS           |" << endl;
-			log << head << "*---------------------------------------*" << endl;
-			log << head << "|       DATE: " << year << "-" << month << "-" << day << endl;
-			log << head << "|       TIME: " << tHour << ":" << tMin << ":" << tSec << endl;
-			log << head << "|   LATITUDE: " << tLat << endl;
-			log << head << "|  LONGITUDE: " << tLon << endl;
-			log << head << "|      DEPTH: " << depth << endl;
-			log << head << "|        RMS: " << orms << endl;
-			log << head << "|    AZ. GAP: " << gap << endl;
-			if ( stringIsOfType(erh, stInteger) )
-				log << head << "|        ERH: " << erh << endl;
-			if ( stringIsOfType(erz, stInteger) )
-				log << head << "|        ERZ: " << erz << endl;
-			log << head << "*---------------------------------------*" << endl;
+
+			SEISCOMP_LOG(_logChannel, "|           FINAL RUN RESULTS           |");
+			SEISCOMP_LOG(_logChannel, "*---------------------------------------*");
+			SEISCOMP_LOG(_logChannel, "|       DATE: %s-%s-%s", year.c_str(), month.c_str(), day.c_str());
+			SEISCOMP_LOG(_logChannel, "|       TIME: %s:%s:%s", tHour.c_str(), tMin.c_str(), tSec.c_str());
+			SEISCOMP_LOG(_logChannel, "|   LATITUDE: %s", tLat.c_str());
+			SEISCOMP_LOG(_logChannel, "|  LONGITUDE: %s", tLon.c_str());
+			SEISCOMP_LOG(_logChannel, "|      DEPTH: %s", depth.c_str());
+			SEISCOMP_LOG(_logChannel, "|        RMS: %s", orms.c_str());
+			SEISCOMP_LOG(_logChannel, "|    AZ. GAP: %s", gap.c_str());
+			if ( stringIsOfType(erh, stInteger) ) {
+				SEISCOMP_LOG(_logChannel, "|        ERH: %s", erh.c_str());
+			}
+			if ( stringIsOfType(erz, stInteger) ) {
+				SEISCOMP_LOG(_logChannel, "|        ERZ: %s", erz.c_str());
+			}
+			SEISCOMP_LOG(_logChannel, "*---------------------------------------*");
 
 
 		} // loop==event
@@ -2258,8 +2277,6 @@ Origin* Hypo71::locate(PickList& pickList) {
 
 	origin->setQuality(oq);
 
-	log.close();
-
 	return origin;
 }
 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -2277,21 +2294,12 @@ Hypo71::getZTR(const PickList& pickList) {
 	double minER = 10000.;
 	string minDepth;
 	char buf[10];
-	ofstream log(_logFile.c_str(), ios::app);
 
-	/* time log's buffer */
-	time_t rawtime;
-	struct tm* timeinfo;
-	char head[80];
-	time(&rawtime);
-	timeinfo = localtime(&rawtime);
-	strftime(head, 80, "%F %H:%M:%S [log] ", timeinfo);
-
-	log << endl;
-	log << endl;
-	log << head << "*---------------------------------------*" << endl;
-	log << head << "|           NEW LOCALIZATION            |" << endl;
-	log << head << "*---------------------------------------*" << endl;
+	SEISCOMP_LOG(_logChannel, "");
+	SEISCOMP_LOG(_logChannel, "");
+	SEISCOMP_LOG(_logChannel, "*---------------------------------------*");
+	SEISCOMP_LOG(_logChannel, "|           NEW LOCALIZATION            |");
+	SEISCOMP_LOG(_logChannel, "*---------------------------------------*");
 
 
 	/*----------------------------------*
@@ -2440,15 +2448,15 @@ Hypo71::getZTR(const PickList& pickList) {
 	cIC.zres = dIC.zres;
 
 
-	log << head << "| Picklist content" << endl;
+	SEISCOMP_LOG(_logChannel, "| Picklist content");
 	for (PickList::const_iterator i = pickList.begin();
 	        i != pickList.end(); ++i) {
 		PickPtr p = i->pick;
-		log << head << "|  " << p->phaseHint().code() << " "
-		    << p->waveformID().stationCode() << " a.k.a. "
-		    << getStationMappedCode(p->waveformID().networkCode(), p->waveformID().stationCode())
-		    << " " << p->time().value().toString("%H:%M:%S.%f")
-		    << endl;
+		SEISCOMP_LOG(_logChannel, "|  %s %s a.k.a. %s %s",
+		             p->phaseHint().code().c_str(),
+		             p->waveformID().stationCode().c_str(),
+		             getStationMappedCode(p->waveformID().networkCode(), p->waveformID().stationCode()).c_str(),
+		             p->time().value().toString("%H:%M:%S.%f").c_str());
 	}
 
 
@@ -2460,9 +2468,9 @@ Hypo71::getZTR(const PickList& pickList) {
 
 		ofstream h71in(_h71inputFile.c_str());
 
-		log << head << "*---------------------------------------*" << endl;
-		log << head << "| " << "ITERATION " << j << " with ZTR fixed at "
-		        << stripSpace(Tztr.at(j)) << "km" << endl;
+		SEISCOMP_LOG(_logChannel, "*---------------------------------------*");
+		SEISCOMP_LOG(_logChannel, "| ITERATION %zu with ZTR fixed at %skm",
+		             j, stripSpace(Tztr.at(j)).c_str());
 
 		/*-----------------------*/
 		/*| HYPO71 HEADING CARD |*/
@@ -3076,17 +3084,19 @@ Hypo71::getZTR(const PickList& pickList) {
 						else
 							ER = 10000.;
 
-						log << head << "|  RMS: " << formatString(rms, 10, 1) << "  LAT: " << tLat << endl;
-						log << head << "|  ERH: " << formatString(erh, 10, 1) << "  LON: " << tLon << endl;
-						log << head << "|  ERZ: " << formatString(erz, 10, 1) << "DEPTH: " << depth << "km" << endl;
-						log << head << "|   ER: " << ER << endl;
+						SEISCOMP_LOG(_logChannel, "|  RMS: %s  LAT: %s", formatString(rms, 10, 1).c_str(), tLat.c_str());
+						SEISCOMP_LOG(_logChannel, "|  ERH: %s  LON: %s", formatString(erh, 10, 1).c_str(), tLon.c_str());
+						SEISCOMP_LOG(_logChannel, "|  ERZ: %sDEPTH: %skm", formatString(erz, 10, 1).c_str(), depth.c_str());
+						SEISCOMP_LOG(_logChannel, "|   ER: %f", ER);
 
 						if ( (toDouble(rms) < minRMS) or ( (toDouble(rms) == minRMS) and ( ER < minER ) ) ) {
 
-							if ( minDepth == "" )
-								log << head << "|  ZTR set to " << depth << "km" << endl;
-							else
-								log << head << "|  " << minDepth << "km old ZTR is replaced by " << depth << "km" << endl;
+							if ( minDepth == "" ) {
+								SEISCOMP_LOG(_logChannel, "|  ZTR set to %skm", depth.c_str());
+							}
+							else {
+								SEISCOMP_LOG(_logChannel, "|  %skm old ZTR is replaced by %skm", minDepth.c_str(), depth.c_str());
+							}
 							minDepth = depth;
 							minRMS = toDouble(rms);
 							minER = ER;
@@ -3109,15 +3119,13 @@ Hypo71::getZTR(const PickList& pickList) {
 	sprintf(buf, "%#04.0f", toDouble(minDepth));
 	string fdepth = toString(buf);
 
-	log << head << "*---------------------------------------*" << endl;
-	log << head << "|           ITERATIONS RESULTS          |" << endl;
-	log << head << "*---------------------------------------*" << endl;
-	log << head << "| MIN RMS VALUE: " << minRMS << endl;
-	log << head << "|  MIN ER VALUE: " << minER << endl;
-	log << head << "|  ZTR TO APPLY: " << fdepth << endl;
-	log << head << "*---------------------------------------*" << endl;
-
-	log.close();
+	SEISCOMP_LOG(_logChannel, "*---------------------------------------*");
+	SEISCOMP_LOG(_logChannel, "|           ITERATIONS RESULTS          |");
+	SEISCOMP_LOG(_logChannel, "*---------------------------------------*");
+	SEISCOMP_LOG(_logChannel, "| MIN RMS VALUE: %f", minRMS);
+	SEISCOMP_LOG(_logChannel, "|  MIN ER VALUE: %f", minER);
+	SEISCOMP_LOG(_logChannel, "|  ZTR TO APPLY: %s", fdepth);
+	SEISCOMP_LOG(_logChannel, "*---------------------------------------*");
 
 	return fdepth;
 }

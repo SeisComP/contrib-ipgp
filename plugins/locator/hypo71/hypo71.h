@@ -25,6 +25,7 @@
 
 
 #include <seiscomp/core/plugin.h>
+#include <seiscomp/logging/channel.h>
 #include <seiscomp/seismology/locatorinterface.h>
 #include <seiscomp/config/config.h>
 #include <string>
@@ -413,6 +414,9 @@ class Hypo71 : public LocatorInterface {
 
 		static IDList _allowedParameters;
 
+		Logging::Channel *_logChannel{nullptr};
+		Logging::Output  *_logOutput{nullptr};
+
 		bool _allowMissingStations;
 //		bool _useLastOriginAsReference;
 		bool _useHypo71PatternID;
@@ -429,7 +433,6 @@ class Hypo71 : public LocatorInterface {
 		std::string _controlFilePath;
 		std::string _lastWarning;
 		std::string _hypo71ScriptFile;
-		std::string _logFile;
 		std::string _currentOriginID;
 
 		std::string _trialLatDeg;
