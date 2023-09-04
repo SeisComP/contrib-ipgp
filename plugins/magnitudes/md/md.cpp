@@ -147,24 +147,6 @@ AmplitudeProcessor_Md::AmplitudeProcessor_Md() :
 
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-AmplitudeProcessor_Md::AmplitudeProcessor_Md(const Core::Time& trigger) :
-		AmplitudeProcessor(trigger, "Md") {
-
-	setSignalStart(0.);
-	setSignalEnd(aFile.SIGNAL_LENGTH);
-	setMinSNR(aFile.SNR_MIN);
-	setMaxDist(8);
-	_computeAbsMax = true;
-	_isInitialized = false;
-
-	computeTimeWindow();
-}
-// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-
-
-
-// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 bool AmplitudeProcessor_Md::setup(const Settings& settings) {
 
 	if ( !AmplitudeProcessor::setup(settings) )

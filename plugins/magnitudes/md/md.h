@@ -37,10 +37,9 @@ class SC_SYSTEM_CLIENT_API AmplitudeProcessor_Md : public AmplitudeProcessor {
 
 	public:
 		// ------------------------------------------------------------------
-		//  Instruction
+		//  Construction
 		// ------------------------------------------------------------------
 		AmplitudeProcessor_Md();
-		AmplitudeProcessor_Md(const Core::Time& trigger);
 
 	public:
 		// ------------------------------------------------------------------
