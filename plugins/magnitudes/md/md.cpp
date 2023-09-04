@@ -34,7 +34,6 @@
 #include <seiscomp/math/restitution/fft.h>
 #include <seiscomp/math/geo.h>
 #include <iostream>
-#include <boost/bind.hpp>
 #include <unistd.h>
 
 
@@ -532,7 +531,7 @@ bool AmplitudeProcessor_Md::computeAmplitude(const DoubleArray& data, size_t i1,
                                              AmplitudeValue* amplitude,
                                              double* period, double* snr) {
 
-	double amax, Imax, ofs_sig, amp_sig;
+	double amax, Imax, ofs_sig, amp_sig = 0.0;
 	DoubleArrayPtr d;
 
 	if ( *snr < aFile.SNR_MIN )
@@ -601,8 +600,9 @@ bool AmplitudeProcessor_Md::computeAmplitude(const DoubleArray& data, size_t i1,
 	//amplitude->value = 2 * amp_sig; //! actually it would have to be max. peak-to-peak
 	amplitude->value = amp_sig;
 
-	if ( _streamConfig[_usedComponent].gain != 0.0 )
+	if ( _streamConfig[_usedComponent].gain != 0.0 ) {
 		amplitude->value /= _streamConfig[_usedComponent].gain;
+	}
 	else {
 		setStatus(MissingGain, 0.0);
 		return false;
