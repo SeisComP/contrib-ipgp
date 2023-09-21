@@ -8,7 +8,7 @@
 		<configuration>
 			<group name="hypo71">
 				<description>
-					General Hypo71 configuration parameters.
+					Locator parameters: Hypo71
 				</description>
 				<parameter name="logFile" type="string" default="@LOGDIR@/HYPO71.LOG">
 					<description>
