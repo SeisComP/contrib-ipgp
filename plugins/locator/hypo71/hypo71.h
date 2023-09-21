@@ -414,8 +414,7 @@ class Hypo71 : public LocatorInterface {
 
 		static IDList _allowedParameters;
 
-		Logging::Channel *_logChannel{nullptr};
-		Logging::Output  *_logOutput{nullptr};
+		Logging::Output *_logOutput{nullptr};
 
 		bool _allowMissingStations;
 //		bool _useLastOriginAsReference;
