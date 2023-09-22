@@ -1798,7 +1798,7 @@ Origin* Hypo71::locate(PickList& pickList) {
 	OriginQuality oq;
 
 	// Pick indexer
-	int idx = 1;
+	int idx = 0;
 	//int phaseAssocCount = 0;
 	int usedAssocCount = 0;
 	int depthPhaseCount = 0;
