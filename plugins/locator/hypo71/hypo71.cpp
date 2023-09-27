@@ -1852,7 +1852,7 @@ Origin* Hypo71::locate(PickList& pickList) {
 		if ( loop == event ) {
 
 			string year, month, day, tHour, tMin, tSec, latDeg, latMin,
-			        lonDeg, lonMin, depth, orms, erh, erz, nbStations, tLat,
+			        lonDeg, lonMin, depth, orms, erh, erz, nbPhases, tLat,
 			        tLon, quality;
 
 			try {
@@ -1970,11 +1970,11 @@ Origin* Hypo71::locate(PickList& pickList) {
 				SEISCOMP_ERROR("quality exception: %s", e.what());
 			}
 			try {
-				nbStations = lineContent.substr(51, 3);
-				nbStations = stripSpace(nbStations);
+				nbPhases = lineContent.substr(51, 3);
+				nbPhases = stripSpace(nbPhases);
 			}
 			catch ( exception& e ) {
-				SEISCOMP_ERROR("nbStations exception: %s", e.what());
+				SEISCOMP_ERROR("nbPhases exception: %s", e.what());
 			}
 
 			tLat = SexagesimalToDecimalHypo71(toDouble(latDeg), toDouble(latMin), latSit);
@@ -2016,7 +2016,6 @@ Origin* Hypo71::locate(PickList& pickList) {
 			_usingFixedDepth = false;
 
 			// Set origin quality
-			oq.setUsedStationCount(toInt(nbStations));
 			oq.setAzimuthalGap(toDouble(gap));
 			oq.setGroundTruthLevel(quality);
 
@@ -2032,7 +2031,7 @@ Origin* Hypo71::locate(PickList& pickList) {
 				SEISCOMP_DEBUG("%s | Depth             | %skm", MSG_HEADER, depth.c_str());
 				SEISCOMP_DEBUG("%s | RMS               | %s", MSG_HEADER, orms.c_str());
 				SEISCOMP_DEBUG("%s | Azimuthal GAP     | %s°", MSG_HEADER, gap.c_str());
-				SEISCOMP_DEBUG("%s | Phases            | %s", MSG_HEADER, nbStations.c_str());
+				SEISCOMP_DEBUG("%s | Phases            | %s", MSG_HEADER, nbPhases.c_str());
 				if ( stringIsOfType(erh, stInteger) )
 					SEISCOMP_DEBUG("%s | ERH               | %s", MSG_HEADER, erh.c_str());
 				if ( stringIsOfType(erz, stInteger) )
@@ -2287,6 +2286,15 @@ Origin* Hypo71::locate(PickList& pickList) {
 	oq.setDepthPhaseCount(0);
 	if ( hrms >= 0 )
 		oq.setStandardError(hrms);
+
+	// Find the number of used stations
+	// by creating a set, build by unique network.station codes of the picks
+	set<string> stations;
+	for ( const auto &pickItem : pickList ) {
+		stations.insert(pickItem.pick->waveformID().networkCode() + "." +
+		                pickItem.pick->waveformID().stationCode());
+	}
+	oq.setUsedStationCount(stations.size());
 
 	if ( !Tdist.empty() ) {
 		sort(Tdist.begin(), Tdist.end());
