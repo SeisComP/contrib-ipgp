@@ -1497,7 +1497,7 @@ Origin* Hypo71::locate(PickList& pickList) {
 				if ( ptime != -1 ) {
 					psec = ptime - pmin;
 					if ( psec > 99.99 )
-						sprintf(buffer, "%#03.1f", ssec);
+						sprintf(buffer, "%#03.1f", psec);
 					else
 						sprintf(buffer, "%#02.2f", psec);
 					pSec = toString(buffer);
@@ -1834,12 +1834,9 @@ Origin* Hypo71::locate(PickList& pickList) {
 	OriginQuality oq;
 
 	// Pick indexer
-	int idx = 0;
-	//int phaseAssocCount = 0;
 	int usedAssocCount = 0;
 	int depthPhaseCount = 0;
-	double rms = 0;
-	double hrms = -1;
+	double hrms = -1.0;
 	vector<double> Tdist;
 	string gap;
 
@@ -2186,7 +2183,6 @@ Origin* Hypo71::locate(PickList& pickList) {
 
 				PickPtr pick = it->pick;
 				double weight = it->flags & F_TIME?1.0:0.0;
-
 				if ( (pick->phaseHint().code() == "P")
 				  && (pick->waveformID().stationCode() == staName)
 				  && (pick->waveformID().networkCode() == networkCode) ) {
@@ -2205,8 +2201,17 @@ Origin* Hypo71::locate(PickList& pickList) {
 					pArrival->setTakeOffAngle(toDouble(takeOffAngle));
 
 					if ( !origin->add(pArrival.get()) ) {
+						SEISCOMP_DEBUG("remove");
 						origin->removeArrival(pArrival->index());
 						origin->add(pArrival.get());
+					}
+					try {
+						if ( pArrival->timeUsed() ) {
+							usedAssocCount++;
+						}
+					}
+					catch ( exception& e ) {
+						SEISCOMP_ERROR("pat: %s", e.what());
 					}
 				}
 
@@ -2231,25 +2236,30 @@ Origin* Hypo71::locate(PickList& pickList) {
 						origin->removeArrival(sArrival->index());
 						origin->add(sArrival.get());
 					}
+					try {
+						if ( sArrival->timeUsed() ) {
+							++usedAssocCount;
+						}
+					}
+					catch ( exception& e ) {
+						SEISCOMP_ERROR("sat: %s", e.what());
+					}
 				}
 			}
 
-			if ( toDouble(pwt) > 0.5 )
-				depthPhaseCount++;
-
-			idx++;
+			if ( toDouble(pwt) > 0.5 ) {
+				++depthPhaseCount;
+			}
 
 			if ( ssec != "" ) {
-
-				if ( toDouble(swt) > 0.5 )
-					depthPhaseCount++;
-				idx++;
+				if ( toDouble(swt) > 0.5 ) {
+					++depthPhaseCount;
+				}
 			}
 
 			// Saving station arrival info
 			Tdist.push_back(toDouble(dist));
-			rms += toDouble(pres) * toDouble(sres);
-			++usedAssocCount;
+			// rms += toDouble(pres) * toDouble(sres);
 
 			if ( string(HYPOINFODEBUG) == "ON" ) {
 				SEISCOMP_DEBUG("%s -----------------------------------", MSG_HEADER);
@@ -2274,18 +2284,19 @@ Origin* Hypo71::locate(PickList& pickList) {
 
 		} //  (loop >= staStart) && (loop < staEnd)
 
-		loop++;
+		++loop;
 	} //  end of second file itereation
 	file.close();
 
 	origin->setEarthModelID(_currentProfile->earthModelID);
 	origin->setMethodID("Hypo71");
 
-	oq.setAssociatedPhaseCount(idx);
-	oq.setUsedPhaseCount(idx);
+	oq.setAssociatedPhaseCount(origin->arrivalCount());
+	oq.setUsedPhaseCount(usedAssocCount);
 	oq.setDepthPhaseCount(0);
-	if ( hrms >= 0 )
+	if ( hrms >= 0 ) {
 		oq.setStandardError(hrms);
+	}
 
 	// Find the number of used stations
 	// by creating a set, build by unique network.station codes of the picks
@@ -2295,6 +2306,9 @@ Origin* Hypo71::locate(PickList& pickList) {
 		                pickItem.pick->waveformID().stationCode());
 	}
 	oq.setUsedStationCount(stations.size());
+	if ( string(HYPOINFODEBUG) == "ON" ) {
+		SEISCOMP_DEBUG("%s | Stations     | %ld", MSG_HEADER, stations.size());
+	}
 
 	if ( !Tdist.empty() ) {
 		sort(Tdist.begin(), Tdist.end());
@@ -2794,7 +2808,10 @@ Hypo71::getZTR(const PickList& pickList) {
 			string stationMappedName = getStationMappedCode(pick->waveformID().networkCode(),
 			    pick->waveformID().stationCode());
 			char buffer[10];
-			double pmin, psec, ssec, ptime;
+			double pmin = -1.0;
+			double psec = -1.0;
+			double ssec = -1.0;
+			double ptime = -1.0;
 
 			string tmpDate = pick->time().value().toString("%Y").substr(2, 2)
 			        + pick->time().value().toString("%m") + pick->time().value().toString("%d");
@@ -2803,9 +2820,11 @@ Hypo71::getZTR(const PickList& pickList) {
 			if ( pick->phaseHint().code().find("P") != string::npos ) {
 
 				bool isIntegrated = false;
-				for (size_t x = 0; x < Tstation.size(); ++x)
-					if ( Tstation.at(x) == stationMappedName )
+				for (size_t x = 0; x < Tstation.size(); ++x) {
+					if ( Tstation.at(x) == stationMappedName ) {
 						isIntegrated = true;
+					}
+				}
 
 				if ( !isIntegrated ) {
 
@@ -2820,7 +2839,7 @@ Hypo71::getZTR(const PickList& pickList) {
 						psec = ptime - pmin;
 						pPolarity = getPickPolarity(pickList, pick->waveformID().networkCode(), staName, "P");
 						if ( psec > 99.99 )
-							sprintf(buffer, "%#03.1f", ssec);
+							sprintf(buffer, "%#03.1f", psec);
 						else
 							sprintf(buffer, "%#02.2f", psec);
 						pSec = toString(buffer);
