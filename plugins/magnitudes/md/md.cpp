@@ -637,8 +637,8 @@ double AmplitudeProcessor_Md::timeWindowLength(double distance_deg) const {
 		aFile.FMB = _FMB;
 		aFile.FMF = _FMF;
 		aFile.SNR_MIN = _SNR_MIN;
-        aFile.TAPER = _TAPER;
-        aFile.SIGNAL_LENGTH = _SIGNAL_LENGTH;
+		aFile.TAPER = _TAPER;
+		aFile.SIGNAL_LENGTH = _SIGNAL_LENGTH;
 		aFile.DELTA_MAX = _DELTA_MAX;
 		aFile.SIGNAL_WINDOW_END = _SIGNAL_WINDOW_END;
 		aFile.SEISMO = _SEISMO;
@@ -667,22 +667,22 @@ IMPLEMENT_SC_CLASS_DERIVED(MagnitudeProcessor_Md, MagnitudeProcessor, "Magnitude
 REGISTER_MAGNITUDEPROCESSOR(MagnitudeProcessor_Md, "Md");
 
 struct magConfig {
-
-		double DEPTH_MAX;
-		double LINEAR_CORRECTION;
-		double OFFSET;
-		double DELTA_MAX;
-		double MD_MAX;
-        double TAPER;
-        double SIGNAL_LENGTH;
-        double SNR_MIN;
-		double FMA;
-		double FMB;
-		double FMD;
-		double FMF;
-		double FMZ;
-		double STACOR;
+	double DEPTH_MAX;
+	double LINEAR_CORRECTION;
+	double OFFSET;
+	double DELTA_MAX;
+	double MD_MAX;
+	double TAPER;
+	double SIGNAL_LENGTH;
+	double SNR_MIN;
+	double FMA;
+	double FMB;
+	double FMD;
+	double FMF;
+	double FMZ;
+	double STACOR;
 };
+
 magConfig mFile;
 
 
