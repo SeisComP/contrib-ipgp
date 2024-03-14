@@ -908,6 +908,10 @@ MagnitudeProcessor_Md::computeMagnitude(double amplitude, const std::string &,
 		return DistanceOutOfRange;
 	}
 
+	if ( period <= 0 ) {
+		return PeriodOutOfRange;
+	}
+
 	value = mFile.FMA + mFile.FMB * log10(period) + (mFile.FMF * period)
 	        + (mFile.FMD * epdistkm) + (mFile.FMZ * depth) + mFile.STACOR;
 
