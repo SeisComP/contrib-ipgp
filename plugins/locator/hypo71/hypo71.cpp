@@ -635,7 +635,7 @@ const double Hypo71::getTimeValue(const PickList& pickList,
 
 		switch ( rtype ) {
 			case 0:
-				time = p->time().value();
+				time = static_cast<double>(p->time().value());
 			break;
 			case 1:
 				time = toDouble(p->time().value().toString("%H"));
@@ -647,7 +647,7 @@ const double Hypo71::getTimeValue(const PickList& pickList,
 				time = toDouble(p->time().value().toString("%S.%f"));
 			break;
 			default:
-				time = p->time().value();
+				time = static_cast<double>(p->time().value());
 			break;
 		}
 	}
