@@ -1089,6 +1089,7 @@ int EW2SC::extractOrigin(char* msg) {
 				pArrival->setDistance(dist);
 				pArrival->setAzimuth(azi2);
 				pArrival->setTimeResidual(res);
+				pArrival->setTimeUsed(true);
 				pArrival->setPhase(Phase("P"));
 				pArrival->setCreationInfo(ci);
 				pArrival->setEarthModelID(_locProfile);
@@ -1152,6 +1153,7 @@ int EW2SC::extractOrigin(char* msg) {
 				sArrival->setAzimuth(azi2);
 				sArrival->setPhase(Phase("S"));
 				sArrival->setTimeResidual(res);
+				sArrival->setTimeUsed(true);
 				sArrival->setCreationInfo(ci);
 				sArrival->setEarthModelID(_locProfile);
 
