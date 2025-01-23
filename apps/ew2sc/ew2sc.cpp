@@ -804,7 +804,7 @@ int EW2SC::extractOrigin(char* msg) {
 	Time ot;
 	CreationInfo oci;
 
-	oci.setCreationTime(Core::Time::GMT());
+	oci.setCreationTime(Core::Time::UTC());
 	oci.setAuthor(_instAuthor);
 	if ( !_customAgencyID.empty() )
 		oci.setAgencyID(_customAgencyID);
@@ -1018,15 +1018,15 @@ int EW2SC::extractOrigin(char* msg) {
 				    network.c_str(), site.c_str());
 
 			CreationInfo ci;
-			ci.setCreationTime(Time::GMT());
+			ci.setCreationTime(Time::UTC());
 			if ( !_customAgencyID.empty() )
 				ci.setAgencyID(_customAgencyID);
 			else
 				ci.setAgencyID(agencyID());
 			ci.setAuthor(_instAuthor);
-			ci.setModificationTime(Time::GMT());
+			ci.setModificationTime(Time::UTC());
 
-			Time time = Time::GMT();
+			Time time = Time::UTC();
 			StationPtr station;
 			station = query()->getStation(network, site, time);
 
@@ -1170,13 +1170,13 @@ int EW2SC::extractOrigin(char* msg) {
 	in.close();
 
 	CreationInfo mci;
-	mci.setCreationTime(Time::GMT());
+	mci.setCreationTime(Time::UTC());
 	if ( !_customAgencyID.empty() )
 		mci.setAgencyID(_customAgencyID);
 	else
 		mci.setAgencyID(agencyID());
 	mci.setAuthor(_instAuthor);
-	mci.setModificationTime(Time::GMT());
+	mci.setModificationTime(Time::UTC());
 
 	// Amplitude magnitude
 	if ( eventAmplitudeMagnitude != "NaN" ) {
