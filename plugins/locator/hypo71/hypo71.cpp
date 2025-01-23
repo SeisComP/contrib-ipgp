@@ -92,12 +92,12 @@ class LogOutput : public Logging::FileRotatorOutput {
 		}
 
 	public:
-		void publish(const string &msg) {
+		void write(const string &msg) {
 			publish_(msg);
 		}
 
 		template <typename S, typename... Args>
-		void publish(const S &format, Args &&...args) {
+		void write(const S &format, Args &&...args) {
 			publish_(Core::stringify(format, args...));
 		}
 
@@ -108,7 +108,7 @@ class LogOutput : public Logging::FileRotatorOutput {
 };
 
 
-#define HYPO71_LOG(...) static_cast<LogOutput*>(_logOutput)->publish(__VA_ARGS__)
+#define HYPO71_LOG(...) static_cast<LogOutput*>(_logOutput)->write(__VA_ARGS__)
 
 
 }
@@ -152,9 +152,9 @@ Hypo71::Hypo71() {
 		_allowedParameters.push_back("INST");
 	}
 
-	for (IDList::iterator it = _allowedParameters.begin();
-	        it != _allowedParameters.end(); ++it)
-		_parameters[*it] = "";
+	for ( auto &param : _allowedParameters ) {
+		_parameters[param] = "";
+	}
 }
 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -2170,9 +2170,9 @@ Origin* Hypo71::locate(PickList& pickList) {
 			}
 
 			CreationInfo aci;
-			aci.setCreationTime(Core::Time::GMT());
+			aci.setCreationTime(Core::Time::UTC());
 			aci.setAuthor("Hypo71");
-			aci.setModificationTime(Core::Time::GMT());
+			aci.setModificationTime(Core::Time::UTC());
 
 			// Associating new arrival with new origin.
 			// P.S.: the weight actually stays the same as the one in picklist
