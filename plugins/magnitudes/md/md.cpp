@@ -104,7 +104,6 @@ T getParam(const Settings &settings, const char *name) {
 
 /*----[ AMPLITUDE PROCESSOR CLASS ]----*/
 
-IMPLEMENT_SC_CLASS_DERIVED(AmplitudeProcessor_Md, AmplitudeProcessor, "AmplitudeProcessor_Md");
 REGISTER_AMPLITUDEPROCESSOR(AmplitudeProcessor_Md, "Md");
 
 struct ampConfig {
@@ -663,7 +662,6 @@ double AmplitudeProcessor_Md::timeWindowLength(double distance_deg) const {
 
 /*----[ MAGNITUDE PROCESSOR CLASS ]----*/
 
-IMPLEMENT_SC_CLASS_DERIVED(MagnitudeProcessor_Md, MagnitudeProcessor, "MagnitudeProcessor_Md");
 REGISTER_MAGNITUDEPROCESSOR(MagnitudeProcessor_Md, "Md");
 
 struct magConfig {

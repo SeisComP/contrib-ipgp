@@ -19,11 +19,12 @@
  ************************************************************************/
 
 
-#ifndef __IPGP_MD_PLUGIN_H__
-#define __IPGP_MD_PLUGIN_H__
+#ifndef IPGP_MD_PLUGIN_H
+#define IPGP_MD_PLUGIN_H
 
 
 #include <seiscomp/core/plugin.h>
+#include <seiscomp/core/version.h>
 #include <seiscomp/processing/amplitudeprocessor.h>
 #include <seiscomp/processing/magnitudeprocessor.h>
 
@@ -32,9 +33,6 @@ using namespace Seiscomp;
 using namespace Seiscomp::Processing;
 
 class SC_SYSTEM_CLIENT_API AmplitudeProcessor_Md : public AmplitudeProcessor {
-
-	DECLARE_SC_CLASS(AmplitudeProcessor_Md);
-
 	public:
 		// ------------------------------------------------------------------
 		//  Construction
@@ -94,9 +92,6 @@ class SC_SYSTEM_CLIENT_API AmplitudeProcessor_Md : public AmplitudeProcessor {
 };
 
 class SC_SYSTEM_CLIENT_API MagnitudeProcessor_Md : public MagnitudeProcessor {
-
-	DECLARE_SC_CLASS(MagnitudeProcessor_Md);
-
 	public:
 		// ------------------------------------------------------------------
 		//  Instruction
@@ -107,6 +102,7 @@ class SC_SYSTEM_CLIENT_API MagnitudeProcessor_Md : public MagnitudeProcessor {
 		// ------------------------------------------------------------------
 		//  Public interface
 		// ------------------------------------------------------------------
+		void setDefaults() override {}
 		bool setup(const Settings& settings);
 		Status computeMagnitude(double amplitude, const std::string &unit,
 		                        double period, double snr,
