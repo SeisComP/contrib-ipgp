@@ -10,30 +10,32 @@
 				<description>
 					Locator parameters: Hypo71
 				</description>
-				<parameter name="logFile" type="string" default="@LOGDIR@/HYPO71.LOG">
+				<parameter name="logFile" type="file" default="@LOGDIR@/HYPO71.LOG" options="write">
 					<description>
 					Temporary file used by Hypo71 to store calculation logs.
 					</description>
 				</parameter>
-				<parameter name="inputFile" type="string" default="@DATADIR@/hypo71/HYPO71.INP">
+				<parameter name="inputFile" type="file" default="@DATADIR@/hypo71/HYPO71.INP" options="write">
 					<description>
 					Temporary file to write Hypo71 input data to.
 					</description>
 				</parameter>
-				<parameter name="outputFile" type="string" default="@DATADIR@/hypo71/HYPO71.PRT">
+				<parameter name="outputFile" type="file" default="@DATADIR@/hypo71/HYPO71.PRT" options="write">
 					<description>
 					Temporary output file to read Hypo71 location data from.
 					</description>
 				</parameter>
-				<parameter name="defaultControlFile" type="string" default="@DATADIR@/hypo71/profiles/default.hypo71.conf">
+				<parameter name="defaultControlFile" type="file" default="@DATADIR@/hypo71/profiles/default.hypo71.conf" options="read">
 					<description>
-					Hypo71 default profile.
-					If no custom profile is specified, this profile will be used by the plugin when proceeding to a localization. 
+					Hypo71 default profile. If no custom profile is specified,
+					this profile will be used by the plugin when proceeding to a
+					localization.
 					</description>
 				</parameter>
-				<parameter name="hypo71ScriptFile" type="string" default="@DATADIR@/hypo71/run.sh">
+				<parameter name="hypo71ScriptFile" type="file" default="@DATADIR@/hypo71/run.sh" options="execute">
 					<description>
-					Bash script executed when calling the Hypo71 locator plugin for locating the earthquake.
+					Bash script executed when calling the Hypo71 locator plugin
+					for locating the earthquake.
 					</description>
 				</parameter>
 				<parameter name="profiles" type="list:string">
@@ -45,7 +47,8 @@
 				</parameter>
 				<group name="profile">
 					<description>
-						Profiles containing the profile-specific velocity model and the Hypo71 parameters.
+					Profiles containing the profile-specific velocity model and
+					the Hypo71 parameters.
 					</description>
 					<struct type="Hypo71 profile" link = "hypo71.profiles">
 						<parameter name="earthModelID" type="string">
@@ -59,7 +62,7 @@
 							It is generally the locator's name (Hypo71).
 							</description>
 						</parameter>
-						<parameter name="controlFile" type="string">
+						<parameter name="controlFile" type="file" options="read">
 							<description>
 							File containing the profile parameters.
 							</description>
@@ -76,10 +79,15 @@
 					</struct>
 				</group>
 				<parameter name="publicID" type="string">
-					<description>Custom patternID to use when generating origin publicID</description>
+					<description>
+					Custom patternID to use when generating origin publicID.
+					</description>
 				</parameter>
 				<parameter name="useHypo71PatternID" type="boolean">
-					<description>Specifies if the given publicD should be used for generating origin publicID</description>
+					<description>
+					Specifies if the given public ID shall be used for
+					generating origin publicID.
+					</description>
 				</parameter>
 			</group>
 		</configuration>
