@@ -1027,8 +1027,7 @@ int EW2SC::extractOrigin(char* msg) {
 			ci.setModificationTime(Time::UTC());
 
 			Time time = Time::UTC();
-			StationPtr station;
-			station = query()->getStation(network, site, time);
+			StationPtr station = Seiscomp::Client::Inventory::Instance()->getStation(network, site, time);
 
 			double dist, azi1, azi2;
 			if ( station ) {
