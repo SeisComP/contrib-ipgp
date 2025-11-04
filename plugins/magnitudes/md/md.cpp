@@ -599,8 +599,8 @@ bool AmplitudeProcessor_Md::computeAmplitude(const DoubleArray& data, size_t i1,
 	//amplitude->value = 2 * amp_sig; //! actually it would have to be max. peak-to-peak
 	amplitude->value = amp_sig;
 
-	if ( _streamConfig[_usedComponent].gain != 0.0 ) {
-		amplitude->value /= _streamConfig[_usedComponent].gain;
+	if ( _streamConfig[targetComponent()].gain != 0.0 ) {
+		amplitude->value /= _streamConfig[targetComponent()].gain;
 	}
 	else {
 		setStatus(MissingGain, 0.0);
