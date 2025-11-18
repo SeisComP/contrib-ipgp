@@ -26,7 +26,7 @@
 
 #include <seiscomp/core/system.h>
 #include <seiscomp/logging/log.h>
-#include <seiscomp/logging/filerotator.h>
+#include <seiscomp/logging/output/filerotator.h>
 #include <seiscomp/core/strings.h>
 #include <seiscomp/system/environment.h>
 #include <seiscomp/datamodel/utils.h>
@@ -38,7 +38,6 @@
 #include <ctime>
 #include <fstream>
 #include <sstream>
-#include <iomanip>
 #include <iostream>
 #include <set>
 #include <math.h>

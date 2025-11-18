@@ -21,7 +21,7 @@
 
 #define SEISCOMP_COMPONENT EW2SC
 
-#include <seiscomp/logging/filerotator.h>
+#include <seiscomp/logging/output/filerotator.h>
 #include <seiscomp/logging/channel.h>
 #include <seiscomp/client/inventory.h>
 #include <seiscomp/datamodel/magnitude.h>
@@ -32,7 +32,6 @@
 #include <seiscomp/utils/files.h>
 
 #include <functional>
-#include <iostream>
 #include <errno.h>
 
 #include "ew2sc.h"
