@@ -102,7 +102,7 @@ class LogOutput : public Logging::FileRotatorOutput {
 
 	private:
 		void publish_(const string &msg) {
-			log("log", Logging::LL_INFO, msg.c_str(), time(0));
+			log("log", Logging::LL_INFO, msg.c_str(), time(nullptr), 0);
 		}
 };
 
