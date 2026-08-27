@@ -705,7 +705,7 @@ int EW2SC::ew_write(int sock, char* msg) {
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 int EW2SC::sendMessage(int sock, char* buf, int buflen, int flags,
-                        int timeout_msecs) {
+                       int timeout_msecs) {
 
 	int bytesjustsent = 0;
 	int bytessent = 0;
@@ -713,7 +713,7 @@ int EW2SC::sendMessage(int sock, char* buf, int buflen, int flags,
 	int ackpoll = 5; // poll at 0.005 seconds for recv'ing
 
 	while ( bytessent < buflen ) {
-		bytesjustsent = send(sock, buf + bytessent, buflen - bytessent, flags);
+		bytesjustsent = ::send(sock, buf + bytessent, buflen - bytessent, flags);
 		if ( bytesjustsent < 0 ) {
 			if ( errno != EWOULDBLOCK ) {
 				SEISCOMP_ERROR("sendMessage() %s", strerror(errno));
