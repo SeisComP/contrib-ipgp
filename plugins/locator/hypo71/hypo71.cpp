@@ -1982,7 +1982,7 @@ Origin* Hypo71::locate(PickList& pickList) {
 			origin->setTime(ot);
 
 			// Setting origin creation time
-			ci.setCreationTime(Core::Time().gmt());
+			ci.setCreationTime(Core::Time::UTC());
 			origin->setCreationInfo(ci);
 
 			// Dealing with ERH
